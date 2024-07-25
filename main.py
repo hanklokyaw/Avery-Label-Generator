@@ -1,6 +1,7 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
+from reportlab.lib.colors import white, transparent, black
 import pandas as pd
 import re
 
@@ -165,7 +166,66 @@ def format_sku(sku):
 
 
 ### V 2.0
-def create_avery_pdf(df, column, filename="avery_stickers.pdf"):
+# def create_avery_pdf(df, column, filename="avery_stickers.pdf"):
+#     # Avery 5160 label size
+#     label_width = 1.75 * inch
+#     label_height = 0.5 * inch
+#
+#     # Margins and padding
+#     page_margin_x = 0.3 * inch
+#     page_margin_y = 0.5 * inch
+#     label_padding_x = 0.125 * inch
+#     label_padding_y = 0.125 * inch
+#
+#     # Spacing between labels
+#     horizontal_spacing = 0.3 * inch
+#     vertical_spacing = 0 * inch
+#
+#     # Number of labels per row and column
+#     labels_per_row = 4
+#     labels_per_column = 20
+#
+#     # Font size
+#     font_size = 15  # Change to desired font size
+#
+#     # Create canvas
+#     c = canvas.Canvas(filename, pagesize=letter)
+#
+#     # Draw labels
+#     for i, sku in enumerate(df[column]):
+#         formatted_sku = format_sku(sku)
+#
+#         if i % (labels_per_row * labels_per_column) == 0 and i != 0:
+#             c.showPage()  # Create a new page
+#             # No need to set font size again here, will set before drawing
+#
+#         c.setFont("Helvetica", font_size)  # Set font size before drawing
+#
+#         col = i % labels_per_row
+#         row = (i // labels_per_row) % labels_per_column
+#
+#         # Calculate label position with spacing
+#         x = page_margin_x + col * (label_width + horizontal_spacing)
+#         y = letter[1] - page_margin_y - (row + 1) * (label_height + vertical_spacing)
+#
+#         # Draw the rectangle for the label
+#         c.rect(x, y, label_width, label_height)
+#
+#         # Calculate the width and height of the text
+#         lines = formatted_sku.split('\n')
+#         text_height = font_size * len(lines)  # Use the font size for text height calculation
+#
+#         # Calculate the y positions to center the text
+#         for j, line in enumerate(lines):
+#             text_width = c.stringWidth(line, "Helvetica", font_size)
+#             text_x = x + (label_width - text_width) / 2
+#             text_y = y + (label_height - text_height) / 2 + (len(lines) - j - 1) * font_size
+#             c.drawString(text_x, text_y, line)
+#
+#     c.save()  # Save the PDF file
+
+### V 2.1
+def create_avery_pdf(df, column, filename="avery_stickers.pdf", border_enabled=0):
     # Avery 5160 label size
     label_width = 1.75 * inch
     label_height = 0.5 * inch
@@ -196,7 +256,7 @@ def create_avery_pdf(df, column, filename="avery_stickers.pdf"):
 
         if i % (labels_per_row * labels_per_column) == 0 and i != 0:
             c.showPage()  # Create a new page
-            # No need to set font size again here, will set before drawing
+            c.setFont("Helvetica", font_size)  # Reset font size on new page
 
         c.setFont("Helvetica", font_size)  # Set font size before drawing
 
@@ -208,7 +268,15 @@ def create_avery_pdf(df, column, filename="avery_stickers.pdf"):
         y = letter[1] - page_margin_y - (row + 1) * (label_height + vertical_spacing)
 
         # Draw the rectangle for the label
-        c.rect(x, y, label_width, label_height)
+        if border_enabled:
+            c.setStrokeColor(black)  # Set border color
+        else:
+            c.setStrokeColor(transparent)  # Disable the border color
+        c.setFillColor(white)  # Set the fill color of the rectangle
+        c.rect(x, y, label_width, label_height, fill=1)  # Draw filled rectangle
+
+        # Set text color
+        c.setFillColor(black)  # Set text color (black)
 
         # Calculate the width and height of the text
         lines = formatted_sku.split('\n')
@@ -236,7 +304,7 @@ faceted_syn = faceted_syn.sort_values(['Color', 'Size'], ascending=True)
 # faceted_syn.to_csv('faceted_syn.csv', index=False)
 # create_avery_pdf(faceted_syn, 'Name',filename="faceted_syn.pdf")
 faceted_syn['Name'] = faceted_syn['Name'].str.replace('faceted-','')
-create_avery_pdf(faceted_syn, 'Name',filename="faceted_syn_short.pdf")
+create_avery_pdf(faceted_syn, 'Name',filename="faceted_syn_short.pdf", border_enabled=1)
 
 ### parse and export genuine gems
 faceted_gen = df[(df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('faceted-'))]
@@ -247,7 +315,7 @@ faceted_gen = faceted_gen.sort_values(['Color', 'Size'], ascending=True)
 # faceted_gen.to_csv('faceted_gen.csv', index=False)
 # create_avery_pdf(faceted_gen, 'Name',filename="faceted_gen.pdf")
 faceted_gen['Name'] = faceted_gen['Name'].str.replace('faceted-','')
-create_avery_pdf(faceted_gen, 'Name',filename="faceted_gen_short.pdf")
+create_avery_pdf(faceted_gen, 'Name',filename="faceted_gen_short.pdf", border_enabled=1)
 
 ## parse and export cab synthetic gems
 cab_syn = df[(~df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('cab-'))]
@@ -258,7 +326,7 @@ cab_syn = cab_syn.sort_values(['Color', 'Size'], ascending=True)
 # cab_syn.to_csv('cab_syn.csv', index=False)
 # create_avery_pdf(cab_syn, 'Name',filename="cab_syn.pdf")
 cab_syn['Name'] = cab_syn['Name'].str.replace('cab-','')
-create_avery_pdf(cab_syn, 'Name',filename="cab_syn_short.pdf")
+create_avery_pdf(cab_syn, 'Name',filename="cab_syn_short.pdf", border_enabled=1)
 
 ### parse and export cab genuine gems
 cab_gen = df[(df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('cab-'))]
@@ -269,7 +337,7 @@ cab_gen = cab_gen.sort_values(['Color', 'Size'], ascending=True)
 # cab_gen.to_csv('cab_gen.csv', index=False)
 # create_avery_pdf(cab_gen, 'Name',filename="cab_gen.pdf")
 cab_gen['Name'] = cab_gen['Name'].str.replace('cab-','')
-create_avery_pdf(cab_gen, 'Name',filename="cab_gen_short.pdf")
+create_avery_pdf(cab_gen, 'Name',filename="cab_gen_short.pdf", border_enabled=1)
 
 ## parse and export orb synthetic gems
 orb_syn = df[(~df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('orb-'))]
@@ -280,7 +348,7 @@ orb_syn = orb_syn.sort_values(['Color', 'Size'], ascending=True)
 # orb_syn.to_csv('orb_syn.csv', index=False)
 # create_avery_pdf(orb_syn, 'Name',filename="orb_syn.pdf")
 orb_syn['Name'] = orb_syn['Name'].str.replace('orb-','')
-create_avery_pdf(orb_syn, 'Name',filename="orb_syn_short.pdf")
+create_avery_pdf(orb_syn, 'Name',filename="orb_syn_short.pdf", border_enabled=1)
 
 
 ### parse and export orb genuine gems
@@ -292,5 +360,5 @@ orb_gen = orb_gen.sort_values(['Color', 'Size'], ascending=True)
 # orb_gen.to_csv('orb_gen.csv', index=False)
 # create_avery_pdf(orb_gen, 'Name',filename="orb_gen.pdf")
 orb_gen['Name'] = orb_gen['Name'].str.replace('orb-','')
-create_avery_pdf(orb_gen, 'Name',filename="orb_gen_short.pdf")
+create_avery_pdf(orb_gen, 'Name',filename="orb_gen_short.pdf", border_enabled=1)
 
