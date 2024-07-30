@@ -100,10 +100,10 @@ df['Size'] = df['Name'].apply(extract_size)
 df['Type'] = df['Name'].apply(extract_type)
 df['Cut'] = df['Name'].apply(extract_cut)
 
-def format_sku(sku):
-    parts = sku.split('-')
-    if len(parts) > 5: # <<< len is 2 for Assembly SKU and 5 for Gem short SKU
-        return '-'.join(parts[:2]) + '\n' + '-'.join(parts[2:])
+def format_sku(sku, cut_off_symbol="-", cut_off=2):
+    parts = sku.split(cut_off_symbol)
+    if len(parts) > cut_off: # <<< len is 2 for Assembly SKU and 5 for Gem short SKU
+        return cut_off_symbol.join(parts[:cut_off]) + '\n' + cut_off_symbol.join(parts[cut_off:])
     return sku
 
 ### V 1.0
@@ -166,7 +166,7 @@ def format_sku(sku):
 
 
 ### V 2.0
-# def create_avery_pdf(df, column, filename="avery_stickers.pdf"):
+# def create_avery_pdf_v2(df, column, next_line_cut_off, filename="avery_stickers.pdf"):
 #     # Avery 5160 label size
 #     label_width = 1.75 * inch
 #     label_height = 0.5 * inch
@@ -193,7 +193,7 @@ def format_sku(sku):
 #
 #     # Draw labels
 #     for i, sku in enumerate(df[column]):
-#         formatted_sku = format_sku(sku)
+#         formatted_sku = format_sku(sku, next_line_cut_off)
 #
 #         if i % (labels_per_row * labels_per_column) == 0 and i != 0:
 #             c.showPage()  # Create a new page
@@ -225,7 +225,7 @@ def format_sku(sku):
 #     c.save()  # Save the PDF file
 
 ### V 2.1
-def create_avery_pdf(df, column, filename="avery_stickers.pdf", border_enabled=0):
+def create_avery_pdf_v2_1(df, column, fontsize=15, cut_off_symbol="-", next_line_cut_off=2, filename="avery_stickers.pdf", border_enabled=0):
     # Avery 5160 label size
     label_width = 1.75 * inch
     label_height = 0.5 * inch
@@ -245,14 +245,14 @@ def create_avery_pdf(df, column, filename="avery_stickers.pdf", border_enabled=0
     labels_per_column = 20
 
     # Font size
-    font_size = 15  # Change to desired font size
+    font_size = fontsize  # Change to desired font size
 
     # Create canvas
     c = canvas.Canvas(filename, pagesize=letter)
 
     # Draw labels
     for i, sku in enumerate(df[column]):
-        formatted_sku = format_sku(sku)
+        formatted_sku = format_sku(sku, cut_off_symbol, next_line_cut_off)
 
         if i % (labels_per_row * labels_per_column) == 0 and i != 0:
             c.showPage()  # Create a new page
@@ -293,72 +293,98 @@ def create_avery_pdf(df, column, filename="avery_stickers.pdf", border_enabled=0
 
 # Generate the PDF
 # print(yellow1_sku)
-# create_avery_pdf(blue_sku)
+create_avery_pdf_v2_1(blue_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Blue.pdf", border_enabled=1)
+create_avery_pdf_v2_1(ivory_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Ivory.pdf", border_enabled=1)
+create_avery_pdf_v2_1(ivory1_sku, "SKU", fontsize=11, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Ivory1.pdf", border_enabled=1)
+create_avery_pdf_v2_1(orange_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Orange.pdf", border_enabled=1)
+create_avery_pdf_v2_1(orange1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Orange1.pdf", border_enabled=1)
+create_avery_pdf_v2_1(pink_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Pink.pdf", border_enabled=1)
+create_avery_pdf_v2_1(pink1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Pink1.pdf", border_enabled=1)
+create_avery_pdf_v2_1(white_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_White.pdf", border_enabled=1)
+create_avery_pdf_v2_1(white1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_White1.pdf", border_enabled=1)
+create_avery_pdf_v2_1(yellow_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Yellow.pdf", border_enabled=1)
+create_avery_pdf_v2_1(yellow1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Yellow1.pdf", border_enabled=1)
 
-## parse and export faceted synthetic gems
-faceted_syn = df[(~df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('faceted-'))]
-faceted_syn.loc[:,'Color'] = faceted_syn['Name'].apply(extract_color)
-faceted_syn.loc[:,'Type'] = faceted_syn['Name'].apply(extract_type)
-faceted_syn.loc[:,'Cut'] = faceted_syn['Name'].apply(extract_cut)
-faceted_syn = faceted_syn.sort_values(['Color', 'Size'], ascending=True)
-# faceted_syn.to_csv('faceted_syn.csv', index=False)
-# create_avery_pdf(faceted_syn, 'Name',filename="faceted_syn.pdf")
-faceted_syn['Name'] = faceted_syn['Name'].str.replace('faceted-','')
-create_avery_pdf(faceted_syn, 'Name',filename="faceted_syn_short.pdf", border_enabled=1)
-
-### parse and export genuine gems
-faceted_gen = df[(df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('faceted-'))]
-faceted_gen.loc[:,'Color'] = faceted_gen['Name'].apply(extract_color)
-faceted_gen.loc[:,'Type'] = faceted_gen['Name'].apply(extract_type)
-faceted_gen.loc[:,'Cut'] = faceted_gen['Name'].apply(extract_cut)
-faceted_gen = faceted_gen.sort_values(['Color', 'Size'], ascending=True)
-# faceted_gen.to_csv('faceted_gen.csv', index=False)
-# create_avery_pdf(faceted_gen, 'Name',filename="faceted_gen.pdf")
-faceted_gen['Name'] = faceted_gen['Name'].str.replace('faceted-','')
-create_avery_pdf(faceted_gen, 'Name',filename="faceted_gen_short.pdf", border_enabled=1)
-
-## parse and export cab synthetic gems
-cab_syn = df[(~df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('cab-'))]
-cab_syn.loc[:,'Color'] = cab_syn['Name'].apply(extract_color)
-cab_syn.loc[:,'Type'] = cab_syn['Name'].apply(extract_type)
-cab_syn.loc[:,'Cut'] = cab_syn['Name'].apply(extract_cut)
-cab_syn = cab_syn.sort_values(['Color', 'Size'], ascending=True)
-# cab_syn.to_csv('cab_syn.csv', index=False)
-# create_avery_pdf(cab_syn, 'Name',filename="cab_syn.pdf")
-cab_syn['Name'] = cab_syn['Name'].str.replace('cab-','')
-create_avery_pdf(cab_syn, 'Name',filename="cab_syn_short.pdf", border_enabled=1)
-
-### parse and export cab genuine gems
-cab_gen = df[(df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('cab-'))]
-cab_gen.loc[:,'Color'] = cab_gen['Name'].apply(extract_color)
-cab_gen.loc[:,'Type'] = cab_gen['Name'].apply(extract_type)
-cab_gen.loc[:,'Cut'] = cab_gen['Name'].apply(extract_cut)
-cab_gen = cab_gen.sort_values(['Color', 'Size'], ascending=True)
-# cab_gen.to_csv('cab_gen.csv', index=False)
-# create_avery_pdf(cab_gen, 'Name',filename="cab_gen.pdf")
-cab_gen['Name'] = cab_gen['Name'].str.replace('cab-','')
-create_avery_pdf(cab_gen, 'Name',filename="cab_gen_short.pdf", border_enabled=1)
-
-## parse and export orb synthetic gems
-orb_syn = df[(~df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('orb-'))]
-orb_syn.loc[:,'Color'] = orb_syn['Name'].apply(extract_color)
-orb_syn.loc[:,'Type'] = orb_syn['Name'].apply(extract_type)
-orb_syn.loc[:,'Cut'] = orb_syn['Name'].apply(extract_cut)
-orb_syn = orb_syn.sort_values(['Color', 'Size'], ascending=True)
-# orb_syn.to_csv('orb_syn.csv', index=False)
-# create_avery_pdf(orb_syn, 'Name',filename="orb_syn.pdf")
-orb_syn['Name'] = orb_syn['Name'].str.replace('orb-','')
-create_avery_pdf(orb_syn, 'Name',filename="orb_syn_short.pdf", border_enabled=1)
+create_avery_pdf_v2_1(blue_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Blue.pdf", border_enabled=0)
+create_avery_pdf_v2_1(ivory_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Ivory.pdf", border_enabled=0)
+create_avery_pdf_v2_1(ivory1_sku, "SKU", fontsize=11, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Ivory1.pdf", border_enabled=0)
+create_avery_pdf_v2_1(orange_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Orange.pdf", border_enabled=0)
+create_avery_pdf_v2_1(orange1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Orange1.pdf", border_enabled=0)
+create_avery_pdf_v2_1(pink_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Pink.pdf", border_enabled=0)
+create_avery_pdf_v2_1(pink1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Pink1.pdf", border_enabled=0)
+create_avery_pdf_v2_1(white_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/White.pdf", border_enabled=0)
+create_avery_pdf_v2_1(white1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/White1.pdf", border_enabled=0)
+create_avery_pdf_v2_1(yellow_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Yellow.pdf", border_enabled=0)
+create_avery_pdf_v2_1(yellow1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Yellow1.pdf", border_enabled=0)
 
 
-### parse and export orb genuine gems
-orb_gen = df[(df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('orb-'))]
-orb_gen.loc[:,'Color'] = orb_gen['Name'].apply(extract_color)
-orb_gen.loc[:,'Type'] = orb_gen['Name'].apply(extract_type)
-orb_gen.loc[:,'Cut'] = orb_gen['Name'].apply(extract_cut)
-orb_gen = orb_gen.sort_values(['Color', 'Size'], ascending=True)
-# orb_gen.to_csv('orb_gen.csv', index=False)
-# create_avery_pdf(orb_gen, 'Name',filename="orb_gen.pdf")
-orb_gen['Name'] = orb_gen['Name'].str.replace('orb-','')
-create_avery_pdf(orb_gen, 'Name',filename="orb_gen_short.pdf", border_enabled=1)
+
+######### For Gem short SKU ##############
+#
+# ## parse and export faceted synthetic gems
+# faceted_syn = df[(~df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('faceted-'))]
+# faceted_syn.loc[:,'Color'] = faceted_syn['Name'].apply(extract_color)
+# faceted_syn.loc[:,'Type'] = faceted_syn['Name'].apply(extract_type)
+# faceted_syn.loc[:,'Cut'] = faceted_syn['Name'].apply(extract_cut)
+# faceted_syn = faceted_syn.sort_values(['Color', 'Size'], ascending=True)
+# # faceted_syn.to_csv('faceted_syn.csv', index=False)
+# # create_avery_pdf(faceted_syn, 'Name',filename="faceted_syn.pdf")
+# faceted_syn['Name'] = faceted_syn['Name'].str.replace('faceted-','')
+# create_avery_pdf_v2_1(faceted_syn, 'Name', 15m filename="faceted_syn_short.pdf", border_enabled=1)
+#
+# ### parse and export genuine gems
+# faceted_gen = df[(df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('faceted-'))]
+# faceted_gen.loc[:,'Color'] = faceted_gen['Name'].apply(extract_color)
+# faceted_gen.loc[:,'Type'] = faceted_gen['Name'].apply(extract_type)
+# faceted_gen.loc[:,'Cut'] = faceted_gen['Name'].apply(extract_cut)
+# faceted_gen = faceted_gen.sort_values(['Color', 'Size'], ascending=True)
+# # faceted_gen.to_csv('faceted_gen.csv', index=False)
+# # create_avery_pdf(faceted_gen, 'Name',filename="faceted_gen.pdf")
+# faceted_gen['Name'] = faceted_gen['Name'].str.replace('faceted-','')
+# create_avery_pdf_v2_1(faceted_gen, 'Name',filename="faceted_gen_short.pdf", border_enabled=1)
+#
+# ## parse and export cab synthetic gems
+# cab_syn = df[(~df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('cab-'))]
+# cab_syn.loc[:,'Color'] = cab_syn['Name'].apply(extract_color)
+# cab_syn.loc[:,'Type'] = cab_syn['Name'].apply(extract_type)
+# cab_syn.loc[:,'Cut'] = cab_syn['Name'].apply(extract_cut)
+# cab_syn = cab_syn.sort_values(['Color', 'Size'], ascending=True)
+# # cab_syn.to_csv('cab_syn.csv', index=False)
+# # create_avery_pdf(cab_syn, 'Name',filename="cab_syn.pdf")
+# cab_syn['Name'] = cab_syn['Name'].str.replace('cab-','')
+# create_avery_pdf_v2_1(cab_syn, 'Name',filename="cab_syn_short.pdf", border_enabled=1)
+#
+# ### parse and export cab genuine gems
+# cab_gen = df[(df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('cab-'))]
+# cab_gen.loc[:,'Color'] = cab_gen['Name'].apply(extract_color)
+# cab_gen.loc[:,'Type'] = cab_gen['Name'].apply(extract_type)
+# cab_gen.loc[:,'Cut'] = cab_gen['Name'].apply(extract_cut)
+# cab_gen = cab_gen.sort_values(['Color', 'Size'], ascending=True)
+# # cab_gen.to_csv('cab_gen.csv', index=False)
+# # create_avery_pdf(cab_gen, 'Name',filename="cab_gen.pdf")
+# cab_gen['Name'] = cab_gen['Name'].str.replace('cab-','')
+# create_avery_pdf_v2_1(cab_gen, 'Name',filename="cab_gen_short.pdf", border_enabled=1)
+#
+# ## parse and export orb synthetic gems
+# orb_syn = df[(~df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('orb-'))]
+# orb_syn.loc[:,'Color'] = orb_syn['Name'].apply(extract_color)
+# orb_syn.loc[:,'Type'] = orb_syn['Name'].apply(extract_type)
+# orb_syn.loc[:,'Cut'] = orb_syn['Name'].apply(extract_cut)
+# orb_syn = orb_syn.sort_values(['Color', 'Size'], ascending=True)
+# # orb_syn.to_csv('orb_syn.csv', index=False)
+# # create_avery_pdf(orb_syn, 'Name',filename="orb_syn.pdf")
+# orb_syn['Name'] = orb_syn['Name'].str.replace('orb-','')
+# create_avery_pdf_v2_1(orb_syn, 'Name',filename="orb_syn_short.pdf", border_enabled=1)
+#
+#
+# ### parse and export orb genuine gems
+# orb_gen = df[(df['Name'].str.contains('(?i)-ge')) & (df['Name'].str.startswith('orb-'))]
+# orb_gen.loc[:,'Color'] = orb_gen['Name'].apply(extract_color)
+# orb_gen.loc[:,'Type'] = orb_gen['Name'].apply(extract_type)
+# orb_gen.loc[:,'Cut'] = orb_gen['Name'].apply(extract_cut)
+# orb_gen = orb_gen.sort_values(['Color', 'Size'], ascending=True)
+# # orb_gen.to_csv('orb_gen.csv', index=False)
+# # create_avery_pdf(orb_gen, 'Name',filename="orb_gen.pdf")
+# orb_gen['Name'] = orb_gen['Name'].str.replace('orb-','')
+# create_avery_pdf_v2_1(orb_gen, 'Name',filename="orb_gen_short.pdf", border_enabled=1)
 
