@@ -102,7 +102,7 @@ df['Cut'] = df['Name'].apply(extract_cut)
 
 def format_sku(sku):
     parts = sku.split('-')
-    if len(parts) > 5: # default is 2 change back to default after printing gems sku
+    if len(parts) > 5: # <<< len is 2 for Assembly SKU and 5 for Gem short SKU
         return '-'.join(parts[:2]) + '\n' + '-'.join(parts[2:])
     return sku
 
