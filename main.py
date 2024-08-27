@@ -7,7 +7,8 @@ import re
 
 # Dataframe for Tip Out Bin
 df = pd.read_excel("C:/Users/hank.aungkyaw/Documents/Ana 3 Mo Sales.xlsx", sheet_name="Labels ")
-subset_df = df[['SKU', 'Label', 'Color']].copy()
+subset_df = df[['SKU', 'Area','Label', 'Color']].copy()
+subset_df = subset_df[subset_df['Area'] == "Fulfillment"]
 blue_sku = subset_df[subset_df['Color'] == 'Blue']
 ivory_sku = subset_df[subset_df['Color'] == 'Ivory ']
 ivory1_sku = subset_df[subset_df['Color'] == 'Ivory 1']
@@ -21,7 +22,11 @@ yellow_sku = subset_df[subset_df['Color'] == 'Yellow']
 yellow1_sku = subset_df[subset_df['Color'] == 'Yellow 1']
 
 # Dataframe for Gem Bins
-df = pd.read_excel("C:/Users/hank.aungkyaw/Documents/All_Gem_SKU.xlsx")
+# df = pd.read_excel("C:/Users/hank.aungkyaw/Documents/gold_subassembly.xlsx")
+
+# Gem Labels
+gem_df = pd.read_excel('Gem_Labels.xlsx')
+
 
 
 # # Function to extract color code after .0, .5, or other variations
@@ -95,10 +100,10 @@ def extract_cut(name):
         return None
 
 # Apply the function to the 'Name' column and create the 'Color' column
-df['Color'] = df['Name'].apply(extract_color)
-df['Size'] = df['Name'].apply(extract_size)
-df['Type'] = df['Name'].apply(extract_type)
-df['Cut'] = df['Name'].apply(extract_cut)
+# df['Color'] = df['Name'].apply(extract_color)
+# df['Size'] = df['Name'].apply(extract_size)
+# df['Type'] = df['Name'].apply(extract_type)
+# df['Cut'] = df['Name'].apply(extract_cut)
 
 def format_sku(sku, cut_off_symbol="-", cut_off=2):
     parts = sku.split(cut_off_symbol)
@@ -232,7 +237,7 @@ def create_avery_pdf_v2_1(df, column, fontsize=15, cut_off_symbol="-", next_line
 
     # Margins and padding
     page_margin_x = 0.3 * inch
-    page_margin_y = 0.5 * inch
+    page_margin_y = 0.45 * inch
     label_padding_x = 0.125 * inch
     label_padding_y = 0.125 * inch
 
@@ -293,31 +298,74 @@ def create_avery_pdf_v2_1(df, column, fontsize=15, cut_off_symbol="-", next_line
 
 # Generate the PDF
 # print(yellow1_sku)
-create_avery_pdf_v2_1(blue_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Blue.pdf", border_enabled=1)
-create_avery_pdf_v2_1(ivory_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Ivory.pdf", border_enabled=1)
-create_avery_pdf_v2_1(ivory1_sku, "SKU", fontsize=11, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Ivory1.pdf", border_enabled=1)
-create_avery_pdf_v2_1(orange_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Orange.pdf", border_enabled=1)
-create_avery_pdf_v2_1(orange1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Orange1.pdf", border_enabled=1)
-create_avery_pdf_v2_1(pink_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Pink.pdf", border_enabled=1)
-create_avery_pdf_v2_1(pink1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Pink1.pdf", border_enabled=1)
-create_avery_pdf_v2_1(white_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_White.pdf", border_enabled=1)
-create_avery_pdf_v2_1(white1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_White1.pdf", border_enabled=1)
-create_avery_pdf_v2_1(yellow_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Yellow.pdf", border_enabled=1)
-create_avery_pdf_v2_1(yellow1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Yellow1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(blue_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Blue.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(ivory_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Ivory.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(ivory1_sku, "SKU", fontsize=11, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Ivory1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(orange_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Orange.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(orange1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Orange1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(pink_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Pink.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(pink1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Pink1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(white_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_White.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(white1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_White1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(yellow_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="With Borders/BORDER_Yellow.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(yellow1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/BORDER_Yellow1.pdf", border_enabled=1)
+#
+# create_avery_pdf_v2_1(blue_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Blue.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(ivory_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Ivory.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(ivory1_sku, "SKU", fontsize=11, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Ivory1.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(orange_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Orange.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(orange1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Orange1.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(pink_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Pink.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(pink1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Pink1.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(white_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/White.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(white1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/White1.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(yellow_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Yellow.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(yellow1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Yellow1.pdf", border_enabled=0)
 
-create_avery_pdf_v2_1(blue_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Blue.pdf", border_enabled=0)
-create_avery_pdf_v2_1(ivory_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Ivory.pdf", border_enabled=0)
-create_avery_pdf_v2_1(ivory1_sku, "SKU", fontsize=11, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Ivory1.pdf", border_enabled=0)
-create_avery_pdf_v2_1(orange_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Orange.pdf", border_enabled=0)
-create_avery_pdf_v2_1(orange1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Orange1.pdf", border_enabled=0)
-create_avery_pdf_v2_1(pink_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Pink.pdf", border_enabled=0)
-create_avery_pdf_v2_1(pink1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Pink1.pdf", border_enabled=0)
-create_avery_pdf_v2_1(white_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/White.pdf", border_enabled=0)
-create_avery_pdf_v2_1(white1_sku, "SKU", fontsize=10, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/White1.pdf", border_enabled=0)
-create_avery_pdf_v2_1(yellow_sku, "SKU", fontsize=12, next_line_cut_off=2, filename="Without Borders/Yellow.pdf", border_enabled=0)
-create_avery_pdf_v2_1(yellow1_sku, "SKU", fontsize=9, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Yellow1.pdf", border_enabled=0)
+# pink_df = df[df["Color"] == "Pink"]
+# white_df = df[df["Color"] == "White"]
+# yellow_df = df[df["Color"] == "Yellow"]
+# ivory_df = df[df["Color"] == "Ivory "]
+# orange_df = df[df["Color"] == "Orange"]
+# print(pink_df)
+# create_avery_pdf_v2_1(pink_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/border_pink.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(white_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/border_white.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(yellow_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/border_yellow.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(ivory_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/border_ivory.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(orange_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/border_orange.pdf", border_enabled=1)
+#
+# create_avery_pdf_v2_1(pink_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/noborder_pink.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(white_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/noborder_white.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(yellow_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/noborder_yellow.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(ivory_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/noborder_ivory.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(orange_df, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="gold assembly/noborder_orange.pdf", border_enabled=0)
 
 
+# create_avery_pdf_v2_1(blue_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Blue.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(ivory_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Ivory.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(orange_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Orange.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(pink_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Pink.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(white_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/White.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(yellow_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Yellow.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(ivory1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/Ivory1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(orange1_sku, "Label", fontsize=12, cut_off_symbol="*", next_line_cut_off=1, filename="With Borders/Orange1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(pink1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/Pink1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(white1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/White1.pdf", border_enabled=1)
+# create_avery_pdf_v2_1(yellow1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="With Borders/Yellow1.pdf", border_enabled=1)
+# #
+# create_avery_pdf_v2_1(blue_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Blue.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(ivory_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Ivory.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(orange_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Orange.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(pink_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Pink.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(white_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/White.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(yellow_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Yellow.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(ivory1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Ivory1.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(orange1_sku, "Label", fontsize=12, cut_off_symbol="*", next_line_cut_off=1, filename="Without Borders/Orange1.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(pink1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Pink1.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(white1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/White1.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(yellow1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Yellow1.pdf", border_enabled=0)
+
+create_avery_pdf_v2_1(gem_df, "Name", fontsize=15, cut_off_symbol="-", next_line_cut_off=1, filename="gem_labels/genuine_noborder.pdf", border_enabled=0)
 
 ######### For Gem short SKU ##############
 #
