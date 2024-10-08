@@ -6,88 +6,15 @@ import pandas as pd
 import re
 
 # Gem Labels
-gem_df = pd.read_excel('Gem_Labels.xlsx')
+df = pd.read_excel('Gem_Labels.xlsx')
 
+cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
+faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
+orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
 
-add_on_labels_oct_24 = pd.read_csv("C:/Users/hank.aungkyaw/Documents/add_on_labels_oct_24.csv")
-add_on_blue_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'NB']
-add_on_ivory_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'SS']
-add_on_orange_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'TI']
-add_on_pink_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'RG']
-add_on_yellow_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'YG']
-add_on_white_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'WG']
-add_on_black_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'RB']
-
-
-### v2
-# Function to extract color code
-def extract_color(name):
-    # Pattern to match the specific format with "-mq" suffix
-    specific_pattern = r'\d+(\.\d+)?(x\d+)?([A-Za-z]+)-mq'
-
-    match = re.search(specific_pattern, name)
-    if match:
-        return match.group(3)
-
-    # Fallback pattern for the rest of the cases
-    fallback_pattern = r'\d+(\.\d+)?(x\d+)?([A-Za-z]+)'
-    match = re.search(fallback_pattern, name)
-    return match.group(3) if match else None
-
-
-# Function to extract size
-def extract_size(name):
-    match = re.search(r'(\d+(\.\d+)?(x\d+)?|(\d+x\d+))', name)
-    return match.group(1) if match else None
-
-
-def extract_type(name):
-    if '-lc' in name:
-        return 'Lab Created'
-    elif '-ce' in name:
-        return 'Ceramic'
-    elif '-so' in name:
-        return 'FOP'
-    elif '-ptz' in name:
-        return 'Topaz'
-    elif '-ge' in name:
-        return 'Genuine'
-    else:
-        return None
-
-def extract_cut(name):
-    if '-Mq' in name:
-        return 'Marquise'
-    elif '-sp' in name:
-        return 'Princess'
-    elif '-fb' in name:
-        return 'Flatback'
-    elif '-hrt' in name:
-        return 'Heart'
-    elif '-ov' in name:
-        return 'Oval'
-    elif '-mq' in name:
-        return 'Marquise'
-    elif '-tpr' in name:
-        return 'Tapered'
-    elif '-tr' in name:
-        return 'Trillion'
-    elif '-em' in name:
-        return 'Emrald'
-    elif '-pe' in name:
-        return 'Pear'
-    elif '-oct' in name:
-        return 'Octagon'
-    elif '-bu' in name:
-        return 'Bullet'
-    else:
-        return None
-
-# Apply the function to the 'Name' column and create the 'Color' column
-# df['Color'] = df['Name'].apply(extract_color)
-# df['Size'] = df['Name'].apply(extract_size)
-# df['Type'] = df['Name'].apply(extract_type)
-# df['Cut'] = df['Name'].apply(extract_cut)
+print(cab_df)
+print(faceted_df)
+print(orb_df)
 
 def format_sku(sku, cut_off_symbol="-", cut_off=2):
     parts = sku.split(cut_off_symbol)
@@ -98,22 +25,22 @@ def format_sku(sku, cut_off_symbol="-", cut_off=2):
 ### V 2.1
 def create_avery_pdf_v2_1(df, column, fontsize=15, cut_off_symbol="-", next_line_cut_off=2, filename="avery_stickers.pdf", border_enabled=0):
     # Avery 5160 label size
-    label_width = 1.75 * inch
-    label_height = 0.5 * inch
+    label_width = 0.75 * inch
+    label_height = 0.75 * inch
 
     # Margins and padding
-    page_margin_x = 0.3 * inch
-    page_margin_y = 0.45 * inch
-    label_padding_x = 0.125 * inch
-    label_padding_y = 0.125 * inch
+    page_margin_x = 0.37 * inch
+    page_margin_y = 0.37 * inch
+    label_padding_x = 0.1 * inch
+    label_padding_y = 0.1 * inch
 
     # Spacing between labels
-    horizontal_spacing = 0.3 * inch
-    vertical_spacing = 0 * inch
+    horizontal_spacing = 0.25 * inch
+    vertical_spacing = 0.25 * inch
 
     # Number of labels per row and column
-    labels_per_row = 4
-    labels_per_column = 20
+    labels_per_row = 8
+    labels_per_column = 10
 
     # Font size
     font_size = fontsize  # Change to desired font size
@@ -164,17 +91,7 @@ def create_avery_pdf_v2_1(df, column, fontsize=15, cut_off_symbol="-", next_line
 
 
 
-create_avery_pdf_v2_1(add_on_blue_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Blue.pdf", border_enabled=1)
-create_avery_pdf_v2_1(add_on_ivory_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Ivory.pdf", border_enabled=1)
-create_avery_pdf_v2_1(add_on_orange_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Orange.pdf", border_enabled=1)
-create_avery_pdf_v2_1(add_on_pink_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Pink.pdf", border_enabled=1)
-create_avery_pdf_v2_1(add_on_white_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_White.pdf", border_enabled=1)
-create_avery_pdf_v2_1(add_on_yellow_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Yellow.pdf", border_enabled=1)
-#
-create_avery_pdf_v2_1(add_on_blue_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Blue.pdf", border_enabled=0)
-create_avery_pdf_v2_1(add_on_ivory_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Ivory.pdf", border_enabled=0)
-create_avery_pdf_v2_1(add_on_orange_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Orange.pdf", border_enabled=0)
-create_avery_pdf_v2_1(add_on_pink_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Pink.pdf", border_enabled=0)
-create_avery_pdf_v2_1(add_on_white_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_White.pdf", border_enabled=0)
-create_avery_pdf_v2_1(add_on_yellow_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Yellow.pdf", border_enabled=0)
+######## For Gem SKU ##############
 
+
+create_avery_pdf_v2_1(cab_df, "Name", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Circle_Cab.pdf", border_enabled=1)
