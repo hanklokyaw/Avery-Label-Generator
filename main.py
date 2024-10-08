@@ -28,6 +28,16 @@ yellow1_sku = subset_df[subset_df['Color'] == 'Yellow 1']
 gem_df = pd.read_excel('Gem_Labels.xlsx')
 
 
+add_on_labels_oct_24 = pd.read_csv("C:/Users/hank.aungkyaw/Documents/add_on_labels_oct_24.csv")
+add_on_blue_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'NB']
+add_on_ivory_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'SS']
+add_on_orange_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'TI']
+add_on_pink_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'RG']
+add_on_yellow_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'YG']
+add_on_white_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'WG']
+add_on_black_sku = add_on_labels_oct_24[add_on_labels_oct_24['Material'] == 'RB']
+
+
 
 # # Function to extract color code after .0, .5, or other variations
 # ## v1
@@ -365,7 +375,7 @@ def create_avery_pdf_v2_1(df, column, fontsize=15, cut_off_symbol="-", next_line
 # create_avery_pdf_v2_1(white1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/White1.pdf", border_enabled=0)
 # create_avery_pdf_v2_1(yellow1_sku, "Label", fontsize=12, cut_off_symbol="+", next_line_cut_off=1, filename="Without Borders/Yellow1.pdf", border_enabled=0)
 
-create_avery_pdf_v2_1(gem_df, "Name", fontsize=15, cut_off_symbol="-", next_line_cut_off=1, filename="gem_labels/genuine_noborder.pdf", border_enabled=0)
+# create_avery_pdf_v2_1(gem_df, "Name", fontsize=15, cut_off_symbol="-", next_line_cut_off=1, filename="gem_labels/genuine_noborder.pdf", border_enabled=0)
 
 ######### For Gem short SKU ##############
 #
@@ -435,4 +445,19 @@ create_avery_pdf_v2_1(gem_df, "Name", fontsize=15, cut_off_symbol="-", next_line
 # # create_avery_pdf(orb_gen, 'Name',filename="orb_gen.pdf")
 # orb_gen['Name'] = orb_gen['Name'].str.replace('orb-','')
 # create_avery_pdf_v2_1(orb_gen, 'Name',filename="orb_gen_short.pdf", border_enabled=1)
+
+
+create_avery_pdf_v2_1(add_on_blue_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Blue.pdf", border_enabled=1)
+create_avery_pdf_v2_1(add_on_ivory_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Ivory.pdf", border_enabled=1)
+create_avery_pdf_v2_1(add_on_orange_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Orange.pdf", border_enabled=1)
+create_avery_pdf_v2_1(add_on_pink_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Pink.pdf", border_enabled=1)
+create_avery_pdf_v2_1(add_on_white_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_White.pdf", border_enabled=1)
+create_avery_pdf_v2_1(add_on_yellow_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Add_on_Yellow.pdf", border_enabled=1)
+#
+create_avery_pdf_v2_1(add_on_blue_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Blue.pdf", border_enabled=0)
+create_avery_pdf_v2_1(add_on_ivory_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Ivory.pdf", border_enabled=0)
+create_avery_pdf_v2_1(add_on_orange_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Orange.pdf", border_enabled=0)
+create_avery_pdf_v2_1(add_on_pink_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Pink.pdf", border_enabled=0)
+create_avery_pdf_v2_1(add_on_white_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_White.pdf", border_enabled=0)
+create_avery_pdf_v2_1(add_on_yellow_sku, "Label", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="Without Borders/Add_on_Yellow.pdf", border_enabled=0)
 
