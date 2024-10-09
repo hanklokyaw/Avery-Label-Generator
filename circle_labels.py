@@ -10,88 +10,202 @@ df = pd.read_excel('Gem_Labels.xlsx')
 
 cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
 faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
+faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
 orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
 
-print(cab_df)
-print(faceted_df)
-print(orb_df)
 
-def format_sku(sku, cut_off_symbol="-", cut_off=2):
-    parts = sku.split(cut_off_symbol)
-    if len(parts) > cut_off: # <<< len is 2 for Assembly SKU and 5 for Gem short SKU
-        return cut_off_symbol.join(parts[:cut_off]) + '\n' + cut_off_symbol.join(parts[cut_off:])
-    return sku
+# Define a function to extract the text between 'facet-' and '-ge'
+def extract_length(sku):
+    if 'facet-' in sku and '-ge' in sku:
+        # Split and extract the relevant part
+        return sku.split('facet-')[1].split('-ge')[0]
+    return ''
 
-### V 2.1
-def create_avery_pdf_v2_1(df, column, fontsize=15, cut_off_symbol="-", next_line_cut_off=2, filename="avery_stickers.pdf", border_enabled=0):
-    # Avery 5160 label size
-    label_width = 0.75 * inch
-    label_height = 0.75 * inch
+def wrap_text(sku, max_line_length=8):
+    words = re.findall(r'[^\s-]+|[-]', sku)  # Capture words and dashes
+    wrapped_text = ''
+    current_line = ''
 
-    # Margins and padding
+    for word in words:
+        # Check if adding the word would exceed the maximum line length
+        if len(current_line) + len(word) + 1 <= max_line_length:
+            current_line += word + ''
+        else:
+            wrapped_text += current_line.strip() + '' + '\n'  # Move to the next line
+            current_line = word + ''
+
+    wrapped_text += current_line.strip()  # Add the remaining text
+
+    return wrapped_text
+
+
+
+### V 2.1 - Modified for Circular Labels
+def create_circular_pdf(df, column, fontsize=15, max_line_length=8,
+                       filename="circular_labels.pdf", border_enabled=0):
+    label_diameter = 0.75 * inch  # Diameter of the circle
+    radius = label_diameter / 2
+
     page_margin_x = 0.37 * inch
-    page_margin_y = 0.37 * inch
+    page_margin_y = 0.61 * inch
     label_padding_x = 0.1 * inch
     label_padding_y = 0.1 * inch
 
-    # Spacing between labels
     horizontal_spacing = 0.25 * inch
     vertical_spacing = 0.25 * inch
 
-    # Number of labels per row and column
     labels_per_row = 8
     labels_per_column = 10
 
-    # Font size
-    font_size = fontsize  # Change to desired font size
-
-    # Create canvas
     c = canvas.Canvas(filename, pagesize=letter)
 
-    # Draw labels
     for i, sku in enumerate(df[column]):
-        formatted_sku = format_sku(sku, cut_off_symbol, next_line_cut_off)
+        wrapped_sku = wrap_text(sku, max_line_length)
 
         if i % (labels_per_row * labels_per_column) == 0 and i != 0:
-            c.showPage()  # Create a new page
-            c.setFont("Helvetica", font_size)  # Reset font size on new page
+            c.showPage()
+            c.setFont("Helvetica", fontsize)
 
-        c.setFont("Helvetica", font_size)  # Set font size before drawing
+        c.setFont("Helvetica", fontsize)
 
         col = i % labels_per_row
         row = (i // labels_per_row) % labels_per_column
 
-        # Calculate label position with spacing
-        x = page_margin_x + col * (label_width + horizontal_spacing)
-        y = letter[1] - page_margin_y - (row + 1) * (label_height + vertical_spacing)
+        x_center = page_margin_x + radius + col * (label_diameter + horizontal_spacing)
+        y_center = letter[1] - page_margin_y - radius - row * (label_diameter + vertical_spacing)
 
-        # Draw the rectangle for the label
         if border_enabled:
-            c.setStrokeColor(black)  # Set border color
+            c.setStrokeColor(black)
+            c.setLineWidth(1)
         else:
-            c.setStrokeColor(transparent)  # Disable the border color
-        c.setFillColor(white)  # Set the fill color of the rectangle
-        c.rect(x, y, label_width, label_height, fill=1)  # Draw filled rectangle
+            c.setStrokeColor(transparent)
+            c.setLineWidth(0)
 
-        # Set text color
-        c.setFillColor(black)  # Set text color (black)
+        c.setFillColor(white)
+        c.circle(x_center, y_center, radius, stroke=border_enabled, fill=1)
 
-        # Calculate the width and height of the text
-        lines = formatted_sku.split('\n')
-        text_height = font_size * len(lines)  # Use the font size for text height calculation
+        c.setFillColor(black)
 
-        # Calculate the y positions to center the text
+        lines = wrapped_sku.split('\n')
+        current_font_size = fontsize
+        max_text_width = label_diameter - 2 * label_padding_x
+        max_text_height = label_diameter - 2 * label_padding_y
+        text_height = current_font_size * len(lines)
+
+        while text_height > max_text_height and current_font_size > 6:
+            current_font_size -= 1
+            c.setFont("Helvetica", current_font_size)
+            text_height = current_font_size * len(lines)
+
+        if current_font_size != fontsize:
+            c.setFont("Helvetica", current_font_size)
+
+        text_y_start = y_center + (max_text_height / 2) - ((len(lines) - 1) * current_font_size / 2)
+
         for j, line in enumerate(lines):
-            text_width = c.stringWidth(line, "Helvetica", font_size)
-            text_x = x + (label_width - text_width) / 2
-            text_y = y + (label_height - text_height) / 2 + (len(lines) - j - 1) * font_size
+            text_width = c.stringWidth(line, "Helvetica", current_font_size)
+            text_x = x_center - (text_width / 2)
+            text_y = text_y_start - j * current_font_size
             c.drawString(text_x, text_y, line)
 
-    c.save()  # Save the PDF file
-
+    c.save()
 
 
 ######## For Gem SKU ##############
 
+create_circular_pdf(
+    cab_df,
+    "Name",
+    fontsize=12,
+    max_line_length=7,
+    filename="With Borders/Circle_Cab.pdf",
+    border_enabled=1
+)
 
-create_avery_pdf_v2_1(cab_df, "Name", fontsize=12, cut_off_symbol="-", next_line_cut_off=2, filename="With Borders/Circle_Cab.pdf", border_enabled=1)
+### split long and short df for faceted SKUs
+# Create a new column to store the extracted text
+faceted_df['extracted'] = faceted_df['Name'].apply(extract_length)
+
+# Create two DataFrames based on the length of the extracted text
+short_df = faceted_df[faceted_df['extracted'].str.len() < 7]
+long_df = faceted_df[faceted_df['extracted'].str.len() >= 7]
+
+# Drop the temporary extracted column if not needed
+short_df = short_df.drop(columns=['extracted'])
+long_df = long_df.drop(columns=['extracted'])
+
+########### WITH BORDER ##############
+create_circular_pdf(
+    short_df,
+    "Name",
+    fontsize=12,
+    max_line_length=7,
+    filename="With Borders/Circle_Faceted_Short.pdf",
+    border_enabled=1
+)
+
+create_circular_pdf(
+    short_df,
+    "Name",
+    fontsize=12,
+    max_line_length=7,
+    filename="With Borders/Circle_Faceted_Short.pdf",
+    border_enabled=1
+)
+
+create_circular_pdf(
+    long_df,
+    "Name",
+    fontsize=10,
+    max_line_length=8,
+    filename="With Borders/Circle_Faceted_Long.pdf",
+    border_enabled=1
+)
+
+create_circular_pdf(
+    orb_df,
+    "Name",
+    fontsize=12,
+    max_line_length=8,
+    filename="With Borders/Circle_Orb.pdf",
+    border_enabled=1
+)
+
+
+########### WITHOUT BORDER ##############
+
+create_circular_pdf(
+    cab_df,
+    "Name",
+    fontsize=12,
+    max_line_length=7,
+    filename="Without Borders/Circle_Cab.pdf",
+    border_enabled=0
+)
+
+create_circular_pdf(
+    short_df,
+    "Name",
+    fontsize=12,
+    max_line_length=7,
+    filename="Without Borders/Circle_Faceted_Short.pdf",
+    border_enabled=0
+)
+
+create_circular_pdf(
+    long_df,
+    "Name",
+    fontsize=10,
+    max_line_length=8,
+    filename="Without Borders/Circle_Faceted_Long.pdf",
+    border_enabled=0
+)
+
+create_circular_pdf(
+    orb_df,
+    "Name",
+    fontsize=12,
+    max_line_length=8,
+    filename="Without Borders/Circle_Orb.pdf",
+    border_enabled=0
+)
