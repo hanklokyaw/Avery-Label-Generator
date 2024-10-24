@@ -9,12 +9,14 @@ import os
 import tempfile
 
 # Gem Labels
-df = pd.read_excel('Gem_Labels.xlsx')
+# df = pd.read_excel('Gem_Labels.xlsx')
+df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
 
-cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
-faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
-orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
-
+# cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
+# faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
+# orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
+topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
+print(topaz_df)
 
 # Define a function to extract the text between 'facet-' and '-ge'
 def extract_length(sku):
@@ -150,54 +152,73 @@ def create_circular_qrcode(df, column, fontsize=3.5, max_line_length=8,
 
 
 
-
-########### WITH BORDER ##############
+# ### FOR TOPAZ
+# ########### WITH BORDER ##############
 create_circular_qrcode(
-    faceted_df,
+    topaz_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_borders/Circle_Faceted.pdf",
+    filename="qr_codes_borders/Circle_Topaz.pdf",
     border_enabled=1
 )
-
 create_circular_qrcode(
-    cab_df,
+    topaz_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_borders/Circle_Cab.pdf",
-    border_enabled=1
-)
-
-create_circular_qrcode(
-    orb_df,
-    "Name",
-    max_line_length=8,
-    filename="qr_codes_borders/Circle_Orb.pdf",
-    border_enabled=1
-)
-
-
-########### WITHOUT BORDER ##############
-create_circular_qrcode(
-    faceted_df,
-    "Name",
-    max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Faceted.pdf",
+    filename="qr_codes_no_borders/Circle_Topaz.pdf",
     border_enabled=0
 )
 
-create_circular_qrcode(
-    cab_df,
-    "Name",
-    max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Cab.pdf",
-    border_enabled=0
-)
 
-create_circular_qrcode(
-    orb_df,
-    "Name",
-    max_line_length=8,
-    filename="qr_codes_no_borders/Circle_Orb.pdf",
-    border_enabled=0
-)
+
+# ### FOR GENUINE
+# ########### WITH BORDER ##############
+# create_circular_qrcode(
+#     faceted_df,
+#     "Name",
+#     max_line_length=7,
+#     filename="qr_codes_borders/Circle_Faceted.pdf",
+#     border_enabled=1
+# )
+#
+# create_circular_qrcode(
+#     cab_df,
+#     "Name",
+#     max_line_length=7,
+#     filename="qr_codes_borders/Circle_Cab.pdf",
+#     border_enabled=1
+# )
+#
+# create_circular_qrcode(
+#     orb_df,
+#     "Name",
+#     max_line_length=8,
+#     filename="qr_codes_borders/Circle_Orb.pdf",
+#     border_enabled=1
+# )
+#
+#
+# ########### WITHOUT BORDER ##############
+# create_circular_qrcode(
+#     faceted_df,
+#     "Name",
+#     max_line_length=7,
+#     filename="qr_codes_no_borders/Circle_Faceted.pdf",
+#     border_enabled=0
+# )
+#
+# create_circular_qrcode(
+#     cab_df,
+#     "Name",
+#     max_line_length=7,
+#     filename="qr_codes_no_borders/Circle_Cab.pdf",
+#     border_enabled=0
+# )
+#
+# create_circular_qrcode(
+#     orb_df,
+#     "Name",
+#     max_line_length=8,
+#     filename="qr_codes_no_borders/Circle_Orb.pdf",
+#     border_enabled=0
+# )
