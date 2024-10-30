@@ -9,29 +9,38 @@ import re
 # df = pd.read_excel('Gem_Labels.xlsx')
 
 # Use NS SKU
-df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
+# df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
+
+# Add on SKU
+df = pd.read_excel('Gem_New_SKU.xlsx')
 
 # cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
 # faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
-# faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
+
 # orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
-topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
-print(topaz_df)
+# topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
+cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Name'], ascending=True)
+faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Name'], ascending=True)
+faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
+print(cab_df)
+print(faceted_df)
+# print(topaz_df)
 
 
 # Define a function to extract the text between 'facet-' and '-ge'
 def extract_length(sku):
-    # ### for genuine
-    # if 'facet-' in sku and '-ge' in sku:
-    #     # Split and extract the relevant part
-    #     return sku.split('facet-')[1].split('-ge')[0]
-    # return ''
-
-    ### for topaz
-    if 'facet-' in sku and '-ptz' in sku:
+    ### for genuine
+    if 'facet-' in sku and '-ge' in sku:
         # Split and extract the relevant part
-        return sku.split('facet-')[1].split('-ptz')[0]
+        return sku.split('facet-')[1].split('-ge')[0]
+
     return ''
+
+    # ### for topaz
+    # if 'facet-' in sku and '-ptz' in sku:
+    #     # Split and extract the relevant part
+    #     return sku.split('facet-')[1].split('-ptz')[0]
+    # return ''
 
 def wrap_text(sku, max_line_length=8):
     words = re.findall(r'[^\s-]+|[-]', sku)  # Capture words and dashes
@@ -124,58 +133,61 @@ def create_circular_pdf(df, column, fontsize=15, max_line_length=8,
 
 
 ### FOR TOPAZ BELOW
-create_circular_pdf(
-    topaz_df,
-    "Name",
-    fontsize=12,
-    max_line_length=9,
-    filename="With Borders/Circle_Topaz.pdf",
-    border_enabled=1
-)
-
-create_circular_pdf(
-    topaz_df,
-    "Name",
-    fontsize=12,
-    max_line_length=9,
-    filename="Without Borders/Circle_Topaz.pdf",
-    border_enabled=0
-)
-
-
-# ### FOR GENUINE BELOW
-# ######## For Gem SKU ##############
+# create_circular_pdf(
+#     topaz_df,
+#     "Name",
+#     fontsize=12,
+#     max_line_length=9,
+#     filename="With Borders/Circle_Topaz.pdf",
+#     border_enabled=1
+# )
 #
+# create_circular_pdf(
+#     topaz_df,
+#     "Name",
+#     fontsize=12,
+#     max_line_length=9,
+#     filename="Without Borders/Circle_Topaz.pdf",
+#     border_enabled=0
+# )
+
+
+### FOR GENUINE BELOW
+######## For Gem SKU ##############
+
 # create_circular_pdf(
 #     cab_df,
 #     "Name",
 #     fontsize=12,
 #     max_line_length=7,
-#     filename="With Borders/Circle_topaz.pdf",
+#     filename="With Borders/Circle_Cab_Add_on.pdf",
 #     border_enabled=1
 # )
-#
-# ### split long and short df for faceted SKUs
-# # Create a new column to store the extracted text
-# faceted_df['extracted'] = faceted_df['Name'].apply(extract_length)
-#
-# # Create two DataFrames based on the length of the extracted text
-# short_df = faceted_df[faceted_df['extracted'].str.len() < 7]
-# long_df = faceted_df[faceted_df['extracted'].str.len() >= 7]
-#
-# # Drop the temporary extracted column if not needed
-# short_df = short_df.drop(columns=['extracted'])
-# long_df = long_df.drop(columns=['extracted'])
+
+### split long and short df for faceted SKUs
+# Create a new column to store the extracted text
+faceted_df['extracted'] = faceted_df['Name'].apply(extract_length)
+print(faceted_df)
+
+# Create two DataFrames based on the length of the extracted text
+short_df = faceted_df[faceted_df['extracted'].str.len() < 7]
+long_df = faceted_df[faceted_df['extracted'].str.len() >= 7]
+
+# Drop the temporary extracted column if not needed
+short_df = short_df.drop(columns=['extracted'])
+long_df = long_df.drop(columns=['extracted'])
+print(short_df)
+print(long_df)
 #
 # ########### WITH BORDER ##############
-# create_circular_pdf(
-#     short_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=7,
-#     filename="With Borders/Circle_Topaz_Short.pdf",
-#     border_enabled=1
-# )
+create_circular_pdf(
+    short_df,
+    "Name",
+    fontsize=12,
+    max_line_length=7,
+    filename="With Borders/Circle_Faceted_Short_Add_on.pdf",
+    border_enabled=1
+)
 #
 # create_circular_pdf(
 #     short_df,
@@ -186,14 +198,14 @@ create_circular_pdf(
 #     border_enabled=1
 # )
 #
-# create_circular_pdf(
-#     long_df,
-#     "Name",
-#     fontsize=10,
-#     max_line_length=8,
-#     filename="With Borders/Circle_Faceted_Long.pdf",
-#     border_enabled=1
-# )
+create_circular_pdf(
+    long_df,
+    "Name",
+    fontsize=10,
+    max_line_length=8,
+    filename="With Borders/Circle_Faceted_Long_Add_on.pdf",
+    border_enabled=1
+)
 #
 # create_circular_pdf(
 #     orb_df,
@@ -212,27 +224,27 @@ create_circular_pdf(
 #     "Name",
 #     fontsize=12,
 #     max_line_length=7,
-#     filename="Without Borders/Circle_Cab.pdf",
+#     filename="Without Borders/Circle_Cab_Add_on.pdf",
 #     border_enabled=0
 # )
-#
-# create_circular_pdf(
-#     short_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=7,
-#     filename="Without Borders/Circle_Faceted_Short.pdf",
-#     border_enabled=0
-# )
-#
-# create_circular_pdf(
-#     long_df,
-#     "Name",
-#     fontsize=10,
-#     max_line_length=8,
-#     filename="Without Borders/Circle_Faceted_Long.pdf",
-#     border_enabled=0
-# )
+
+create_circular_pdf(
+    short_df,
+    "Name",
+    fontsize=12,
+    max_line_length=7,
+    filename="Without Borders/Circle_Faceted_Short_Add_on.pdf",
+    border_enabled=0
+)
+
+create_circular_pdf(
+    long_df,
+    "Name",
+    fontsize=10,
+    max_line_length=8,
+    filename="Without Borders/Circle_Faceted_Long_Add_on.pdf",
+    border_enabled=0
+)
 #
 # create_circular_pdf(
 #     orb_df,
