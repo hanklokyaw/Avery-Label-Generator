@@ -29,13 +29,35 @@ def extract_color(name):
     return match.group(3) if match else None
 
 
+def extract_cab_color(name):
+    # Rule 1: If the string contains "#<number>", extract the number
+    match = re.search(r'#(\d+)', name)
+    if match:
+        return match.group(1).zfill(2)
+
+    # Rule 2: If the string does not contain "#" but contains "-", extract between the last digit and the first "-"
+    if '-' in name and not '#' in name:
+        match = re.search(r'\d([^-]+)-', name)
+        if match:
+            return match.group(1)
+
+    # Rule 3: If the string does not contain "#" or a "-" after digits, take the string to the end
+    match = re.search(r'\d([A-Za-z]+)$', name)
+    if match:
+        return match.group(1)
+
+    # Default: Return None if no match
+    return None
+
+
 df['Color'] = df['Name'].apply(extract_color)
+df['CAB Color'] = df['Name'].apply(extract_cab_color)
 # cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
 # faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
 
 # orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
 # topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
-cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Name'], ascending=True)
+cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['CAB Color', 'Name'], ascending=True)
 faceted_df = df[(df['Name'].str.startswith('faceted-')) & (~df['Name'].str.contains('-ptz'))].sort_values(['Color','Name'], ascending=True)
 faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
 print(cab_df)
@@ -199,7 +221,7 @@ create_circular_pdf(
     short_df,
     "Name",
     fontsize=12,
-    max_line_length=7,
+    max_line_length=8,
     filename="With Borders/circular_labels_syn_short.pdf",
     border_enabled=1
 )
@@ -240,7 +262,7 @@ create_circular_pdf(
     cab_df,
     "Name",
     fontsize=12,
-    max_line_length=7,
+    max_line_length=8,
     filename="Without Borders/circular_labels_syn_cab.pdf",
     border_enabled=0
 )
@@ -249,7 +271,7 @@ create_circular_pdf(
     short_df,
     "Name",
     fontsize=12,
-    max_line_length=7,
+    max_line_length=8,
     filename="Without Borders/circular_labels_syn_short.pdf",
     border_enabled=0
 )
@@ -257,7 +279,7 @@ create_circular_pdf(
 create_circular_pdf(
     long_df,
     "Name",
-    fontsize=10,
+    fontsize=12,
     max_line_length=8,
     filename="Without Borders/circular_labels_syn_long.pdf",
     border_enabled=0
