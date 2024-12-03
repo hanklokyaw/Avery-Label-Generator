@@ -9,10 +9,10 @@ import re
 # df = pd.read_excel('Gem_Labels.xlsx')
 
 # Use NS SKU
-# df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
+df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
 
 # Add on SKU
-df = pd.read_excel('Gem_New_SKU.xlsx')
+# df = pd.read_excel('henry_sku_request_list.xlsx')
 
 # cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
 # faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
@@ -20,11 +20,12 @@ df = pd.read_excel('Gem_New_SKU.xlsx')
 # orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
 # topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
 cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Name'], ascending=True)
-faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Name'], ascending=True)
+faceted_df = df[(df['Name'].str.startswith('faceted-')) & (~df['Name'].str.contains('-ptz'))].sort_values(['Name'], ascending=True)
 faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
+topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
 print(cab_df)
 print(faceted_df)
-# print(topaz_df)
+print(topaz_df)
 
 
 # Define a function to extract the text between 'facet-' and '-ge'
@@ -33,6 +34,10 @@ def extract_length(sku):
     if 'facet-' in sku and '-ge' in sku:
         # Split and extract the relevant part
         return sku.split('facet-')[1].split('-ge')[0]
+
+    if 'facet-' in sku and '-ptz' in sku:
+        # Split and extract the relevant part
+        return sku.split('facet-')[1].split('-ptz')[0]
 
     return ''
 
@@ -63,7 +68,7 @@ def wrap_text(sku, max_line_length=8):
 
 ### V 2.1 - Modified for Circular Labels
 def create_circular_pdf(df, column, fontsize=15, max_line_length=8,
-                       filename="circular_labels.pdf", border_enabled=0):
+                       filename="circular_labels_henry_request.pdf", border_enabled=0):
     label_diameter = 0.75 * inch  # Diameter of the circle
     radius = label_diameter / 2
 
@@ -133,14 +138,14 @@ def create_circular_pdf(df, column, fontsize=15, max_line_length=8,
 
 
 ### FOR TOPAZ BELOW
-# create_circular_pdf(
-#     topaz_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=9,
-#     filename="With Borders/Circle_Topaz.pdf",
-#     border_enabled=1
-# )
+create_circular_pdf(
+    topaz_df,
+    "Name",
+    fontsize=12,
+    max_line_length=9,
+    filename="With Borders/circular_labels_henry_request_topaz.pdf",
+    border_enabled=1
+)
 #
 # create_circular_pdf(
 #     topaz_df,
@@ -185,7 +190,7 @@ create_circular_pdf(
     "Name",
     fontsize=12,
     max_line_length=7,
-    filename="With Borders/Circle_Faceted_Short_Add_on.pdf",
+    filename="With Borders/circular_labels_henry_request_short.pdf",
     border_enabled=1
 )
 #
@@ -203,37 +208,46 @@ create_circular_pdf(
     "Name",
     fontsize=10,
     max_line_length=8,
-    filename="With Borders/Circle_Faceted_Long_Add_on.pdf",
+    filename="With Borders/circular_labels_henry_request_long.pdf",
     border_enabled=1
 )
 #
-# create_circular_pdf(
-#     orb_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=8,
-#     filename="With Borders/Circle_Orb.pdf",
-#     border_enabled=1
-# )
+create_circular_pdf(
+    cab_df,
+    "Name",
+    fontsize=12,
+    max_line_length=8,
+    filename="With Borders/circular_labels_henry_request_cab.pdf",
+    border_enabled=1
+)
 #
 #
 # ########### WITHOUT BORDER ##############
 #
-# create_circular_pdf(
-#     cab_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=7,
-#     filename="Without Borders/Circle_Cab_Add_on.pdf",
-#     border_enabled=0
-# )
+create_circular_pdf(
+    topaz_df,
+    "Name",
+    fontsize=12,
+    max_line_length=9,
+    filename="Without Borders/circular_labels_henry_request_topaz.pdf",
+    border_enabled=0
+)
+
+create_circular_pdf(
+    cab_df,
+    "Name",
+    fontsize=12,
+    max_line_length=7,
+    filename="Without Borders/circular_labels_henry_request_cab.pdf",
+    border_enabled=0
+)
 
 create_circular_pdf(
     short_df,
     "Name",
     fontsize=12,
     max_line_length=7,
-    filename="Without Borders/Circle_Faceted_Short_Add_on.pdf",
+    filename="Without Borders/circular_labels_henry_request_short.pdf",
     border_enabled=0
 )
 
@@ -242,7 +256,7 @@ create_circular_pdf(
     "Name",
     fontsize=10,
     max_line_length=8,
-    filename="Without Borders/Circle_Faceted_Long_Add_on.pdf",
+    filename="Without Borders/circular_labels_henry_request_long.pdf",
     border_enabled=0
 )
 #
