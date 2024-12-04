@@ -51,12 +51,14 @@ def extract_cab_color(name):
 
 df['Color'] = df['Name'].apply(extract_color)
 df['CAB Color'] = df['Name'].apply(extract_cab_color)
+df['ORB Color'] = df['Name'].apply(extract_cab_color)
 # cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
 # faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
 
 # orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
 # topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
 cab_df = df[(df['Name'].str.startswith('cab-')) & (~df['Name'].str.contains('-ge'))].sort_values(['CAB Color', 'Name'], ascending=True)
+orb_df = df[(df['Name'].str.startswith('orb-')) & (~df['Name'].str.contains('-ge'))].sort_values(['ORB Color', 'Name'], ascending=True)
 faceted_df = df[(df['Name'].str.startswith('faceted-')) &
                 (~df['Name'].str.contains('-ptz')) &
                 (~df['Name'].str.contains('-ge')) &
@@ -270,6 +272,14 @@ create_circular_qrcode(
     filename="qr_codes_borders/Circle_Cab_Synthetic.pdf",
     border_enabled=1
 )
+
+create_circular_qrcode(
+    orb_df,
+    "Name",
+    max_line_length=7,
+    filename="qr_codes_borders/Circle_Orb_Synthetic.pdf",
+    border_enabled=1
+)
 #
 # create_circular_qrcode(
 #     orb_df,
@@ -293,7 +303,7 @@ create_circular_qrcode(
     long_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Faceted_Synthetic_Short.pdf",
+    filename="qr_codes_no_borders/Circle_Faceted_Synthetic_Long.pdf",
     border_enabled=0
 )
 
@@ -302,6 +312,14 @@ create_circular_qrcode(
     "Name",
     max_line_length=7,
     filename="qr_codes_no_borders/Circle_Cab_Synthetic.pdf",
+    border_enabled=0
+)
+
+create_circular_qrcode(
+    orb_df,
+    "Name",
+    max_line_length=7,
+    filename="qr_codes_no_borders/Circle_Orb_Synthetic.pdf",
     border_enabled=0
 )
 #
