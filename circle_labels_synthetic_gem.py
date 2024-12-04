@@ -71,6 +71,10 @@ def extract_length(sku):
         # Split and extract the relevant part
         return sku.split('facet-')[1].split('-ge')[0]
 
+    if 'cab-' in sku and '-ge' not in sku and '-Ge' not in sku:
+        # Split and extract the relevant part
+        return sku.split('cab-')[1].split('-ge')[0]
+
     return ''
 
     # ### for topaz

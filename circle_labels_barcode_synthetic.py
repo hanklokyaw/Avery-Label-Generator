@@ -56,7 +56,7 @@ df['CAB Color'] = df['Name'].apply(extract_cab_color)
 
 # orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
 # topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
-cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['CAB Color', 'Name'], ascending=True)
+cab_df = df[(df['Name'].str.startswith('cab-')) & (~df['Name'].str.contains('-ge'))].sort_values(['CAB Color', 'Name'], ascending=True)
 faceted_df = df[(df['Name'].str.startswith('faceted-')) &
                 (~df['Name'].str.contains('-ptz')) &
                 (~df['Name'].str.contains('-ge')) &
@@ -64,6 +64,10 @@ faceted_df = df[(df['Name'].str.startswith('faceted-')) &
                 (~df['Name'].str.contains('HSIge')) &
                 (~df['Name'].str.contains('RUge'))
                 ].sort_values(['Color','Name'], ascending=True)
+faceted_df = faceted_df[(~faceted_df['Color'].str.startswith('LC')) &
+                        (~faceted_df['Color'].str.startswith('PS')) &
+                        (~faceted_df['Color'].str.startswith('WS')) &
+                        (~faceted_df['Color'].str.startswith('SS'))]
 # faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
 
 
