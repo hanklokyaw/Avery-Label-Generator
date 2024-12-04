@@ -10,19 +10,9 @@ import tempfile
 
 # Gem Labels
 # df = pd.read_excel('Gem_Labels.xlsx')
-# df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
-df = pd.read_excel('Gem_New_SKU.xlsx')
+df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
+# df = pd.read_excel('Gem_New_SKU.xlsx')
 
-# cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
-# faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
-# orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
-# topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
-# print(topaz_df)
-
-cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Name'], ascending=True)
-faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Name'], ascending=True)
-print(cab_df)
-print(faceted_df)
 
 def extract_color(name):
     # Pattern to match the specific format with "-mq" suffix
@@ -58,11 +48,51 @@ def extract_cab_color(name):
     # Default: Return None if no match
     return None
 
+
+df['Color'] = df['Name'].apply(extract_color)
+df['CAB Color'] = df['Name'].apply(extract_cab_color)
+# cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['Color', 'Size'], ascending=True)
+# faceted_df = df[df['Name'].str.startswith('faceted-')].sort_values(['Color', 'Size'], ascending=True)
+
+# orb_df = df[df['Name'].str.startswith('orb-')].sort_values(['Color', 'Size'], ascending=True)
+# topaz_df = df[df['Name'].str.contains('-ptz')].sort_values(['Name'], ascending=True)
+cab_df = df[df['Name'].str.startswith('cab-')].sort_values(['CAB Color', 'Name'], ascending=True)
+faceted_df = df[(df['Name'].str.startswith('faceted-')) &
+                (~df['Name'].str.contains('-ptz')) &
+                (~df['Name'].str.contains('-ge')) &
+                (~df['Name'].str.contains('-Ge')) &
+                (~df['Name'].str.contains('HSIge')) &
+                (~df['Name'].str.contains('RUge'))
+                ].sort_values(['Color','Name'], ascending=True)
+# faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
+
+
 # Define a function to extract the text between 'facet-' and '-ge'
 def extract_length(sku):
-    if 'faceted-' in sku and '-ge' in sku:
+    ### for synthetic
+    if 'faceted-' in sku and '-ge' not in sku and '-ptz' not in sku and '-Ge' not in sku and 'HSIge' not in sku and 'RUge' not in sku:
+        # Split and extract the relevant part
         return sku.split('faceted-')[1].split('-ge')[0]
+
     return ''
+
+### split long and short df for faceted SKUs
+# Create a new column to store the extracted text
+faceted_df['extracted'] = faceted_df['Name'].apply(extract_length)
+print(faceted_df)
+
+# Create two DataFrames based on the length of the extracted text
+short_df = faceted_df[faceted_df['extracted'].str.len() < 7]
+long_df = faceted_df[faceted_df['extracted'].str.len() >= 7]
+
+# Drop the temporary extracted column if not needed
+short_df = short_df.drop(columns=['extracted'])
+long_df = long_df.drop(columns=['extracted'])
+print(short_df)
+print(long_df)
+
+
+
 
 
 def wrap_text(sku, max_line_length=8):
@@ -211,13 +241,21 @@ def create_circular_qrcode(df, column, fontsize=3.5, max_line_length=8,
 
 
 
-# ### FOR GENUINE
+# ### FOR SYNTHETIC
 # ########### WITH BORDER ##############
 create_circular_qrcode(
-    faceted_df,
+    short_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_borders/Circle_Faceted_Add_on.pdf",
+    filename="qr_codes_borders/Circle_Faceted_Synthetic_Short.pdf",
+    border_enabled=1
+)
+
+create_circular_qrcode(
+    long_df,
+    "Name",
+    max_line_length=7,
+    filename="qr_codes_borders/Circle_Faceted_Synthetic_Long.pdf",
     border_enabled=1
 )
 
@@ -225,7 +263,7 @@ create_circular_qrcode(
     cab_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_borders/Circle_Cab_Add_on.pdf",
+    filename="qr_codes_borders/Circle_Cab_Synthetic.pdf",
     border_enabled=1
 )
 #
@@ -240,10 +278,18 @@ create_circular_qrcode(
 #
 # ########### WITHOUT BORDER ##############
 create_circular_qrcode(
-    faceted_df,
+    short_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Faceted_Add_on.pdf",
+    filename="qr_codes_no_borders/Circle_Faceted_Synthetic_Short.pdf",
+    border_enabled=0
+)
+
+create_circular_qrcode(
+    long_df,
+    "Name",
+    max_line_length=7,
+    filename="qr_codes_no_borders/Circle_Faceted_Synthetic_Short.pdf",
     border_enabled=0
 )
 
@@ -251,7 +297,7 @@ create_circular_qrcode(
     cab_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Cab_Add_on.pdf",
+    filename="qr_codes_no_borders/Circle_Cab_Synthetic.pdf",
     border_enabled=0
 )
 #
