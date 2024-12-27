@@ -10,8 +10,9 @@ import tempfile
 
 # Gem Labels
 # df = pd.read_excel('Gem_Labels.xlsx')
-df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
+# df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
 # df = pd.read_excel('Gem_New_SKU.xlsx')
+df = pd.read_excel('FV to LV labels.xlsx')
 
 
 def extract_color(name):
@@ -253,7 +254,7 @@ create_circular_qrcode(
     short_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_borders/Circle_Faceted_Synthetic_Short.pdf",
+    filename="qr_codes_borders/Circle_Faceted_Synthetic_Short_lv.pdf",
     border_enabled=1
 )
 
@@ -261,7 +262,7 @@ create_circular_qrcode(
     long_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_borders/Circle_Faceted_Synthetic_Long.pdf",
+    filename="qr_codes_borders/Circle_Faceted_Synthetic_Long_lv.pdf",
     border_enabled=1
 )
 
@@ -269,7 +270,7 @@ create_circular_qrcode(
     cab_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_borders/Circle_Cab_Synthetic.pdf",
+    filename="qr_codes_borders/Circle_Cab_Synthetic_lv.pdf",
     border_enabled=1
 )
 
@@ -277,7 +278,7 @@ create_circular_qrcode(
     orb_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_borders/Circle_Orb_Synthetic.pdf",
+    filename="qr_codes_borders/Circle_Orb_Synthetic_lv.pdf",
     border_enabled=1
 )
 #
@@ -295,7 +296,7 @@ create_circular_qrcode(
     short_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Faceted_Synthetic_Short.pdf",
+    filename="qr_codes_no_borders/Circle_Faceted_Synthetic_Short_lv.pdf",
     border_enabled=0
 )
 
@@ -303,7 +304,7 @@ create_circular_qrcode(
     long_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Faceted_Synthetic_Long.pdf",
+    filename="qr_codes_no_borders/Circle_Faceted_Synthetic_Long_lv.pdf",
     border_enabled=0
 )
 
@@ -311,7 +312,7 @@ create_circular_qrcode(
     cab_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Cab_Synthetic.pdf",
+    filename="qr_codes_no_borders/Circle_Cab_Synthetic_lv.pdf",
     border_enabled=0
 )
 
@@ -319,7 +320,7 @@ create_circular_qrcode(
     orb_df,
     "Name",
     max_line_length=7,
-    filename="qr_codes_no_borders/Circle_Orb_Synthetic.pdf",
+    filename="qr_codes_no_borders/Circle_Orb_Synthetic_lv.pdf",
     border_enabled=0
 )
 #

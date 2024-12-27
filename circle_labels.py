@@ -11,6 +11,7 @@ import re
 # Use NS SKU
 df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
 
+
 # Add on SKU
 # df = pd.read_excel('henry_sku_request_list.xlsx')
 

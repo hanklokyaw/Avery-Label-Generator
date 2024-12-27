@@ -2,18 +2,17 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas
 from reportlab.lib.colors import white, transparent, black
+import qrcode
 import pandas as pd
 import re
+import os
+import tempfile
 
 # Gem Labels
 # df = pd.read_excel('Gem_Labels.xlsx')
-
-# Use NS SKU
-df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
-# df = pd.read_excel('FV to LV labels.xlsx')
-
-# Add on SKU
-# df = pd.read_excel('henry_sku_request_list.xlsx')
+# df = pd.read_excel('ALL_GEM_SKU_241021.xlsx')
+# df = pd.read_excel('Gem_New_SKU.xlsx')
+df = pd.read_excel('FV to LV labels.xlsx')
 
 
 def extract_color(name):
@@ -72,57 +71,83 @@ faceted_df = faceted_df[(~faceted_df['Color'].str.startswith('LC')) &
                         (~faceted_df['Color'].str.startswith('PS')) &
                         (~faceted_df['Color'].str.startswith('WS')) &
                         (~faceted_df['Color'].str.startswith('SS'))]
-faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
+# faceted_df['Name'] = faceted_df['Name'].replace("faceted", "facet", regex=True)
 
 
 # Define a function to extract the text between 'facet-' and '-ge'
 def extract_length(sku):
     ### for synthetic
-    if 'facet-' in sku and '-ge' not in sku and '-ptz' not in sku and '-Ge' not in sku and 'HSIge' not in sku and 'RUge' not in sku:
+    if 'faceted-' in sku and '-ge' not in sku and '-ptz' not in sku and '-Ge' not in sku and 'HSIge' not in sku and 'RUge' not in sku:
         # Split and extract the relevant part
-        return sku.split('facet-')[1].split('-ge')[0]
-
-    if 'cab-' in sku and '-ge' not in sku and '-Ge' not in sku:
-        # Split and extract the relevant part
-        return sku.split('cab-')[1].split('-ge')[0]
+        return sku.split('faceted-')[1].split('-ge')[0]
 
     return ''
 
-    # ### for topaz
-    # if 'facet-' in sku and '-ptz' in sku:
-    #     # Split and extract the relevant part
-    #     return sku.split('facet-')[1].split('-ptz')[0]
-    # return ''
+### split long and short df for faceted SKUs
+# Create a new column to store the extracted text
+faceted_df['extracted'] = faceted_df['Name'].apply(extract_length)
+print(faceted_df)
+
+# Create two DataFrames based on the length of the extracted text
+short_df = faceted_df[faceted_df['extracted'].str.len() < 7]
+long_df = faceted_df[faceted_df['extracted'].str.len() >= 7]
+
+# Drop the temporary extracted column if not needed
+short_df = short_df.drop(columns=['extracted'])
+long_df = long_df.drop(columns=['extracted'])
+print(short_df)
+print(long_df)
+
+
+
+
 
 def wrap_text(sku, max_line_length=8):
-    words = re.findall(r'[^\s-]+|[-]', sku)  # Capture words and dashes
+    words = re.findall(r'[^\s-]+|[-]', sku)
     wrapped_text = ''
     current_line = ''
 
     for word in words:
-        # Check if adding the word would exceed the maximum line length
         if len(current_line) + len(word) + 1 <= max_line_length:
             current_line += word + ''
         else:
-            wrapped_text += current_line.strip() + '' + '\n'  # Move to the next line
+            wrapped_text += current_line.strip() + '' + '\n'
             current_line = word + ''
 
-    wrapped_text += current_line.strip()  # Add the remaining text
-
+    wrapped_text += current_line.strip()
     return wrapped_text
 
 
+def generate_qr_code(data):
+    """Generate a QR code image and return the file path."""
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
 
-### V 2.1 - Modified for Circular Labels
-def create_circular_pdf(df, column, fontsize=15, max_line_length=8,
-                       filename="circular_labels_syn.pdf", border_enabled=0):
-    label_diameter = 0.75 * inch  # Diameter of the circle
+    img = qr.make_image(fill_color="black", back_color="white")
+
+    # Create a temporary file to save the QR code
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
+        img.save(temp_file, format='PNG')
+        temp_file_path = temp_file.name
+
+    return temp_file_path
+
+
+def create_circular_qrcode(df, column, fontsize=3.5, max_line_length=8,
+                           filename="circular_labels.pdf", border_enabled=0):
+    label_diameter = 0.75 * inch
     radius = label_diameter / 2
 
     page_margin_x = 0.37 * inch
     page_margin_y = 0.61 * inch
     label_padding_x = 0.1 * inch
-    label_padding_y = 0.12 * inch
+    label_padding_y = 0.1 * inch
 
     horizontal_spacing = 0.25 * inch
     vertical_spacing = 0.25 * inch
@@ -181,148 +206,44 @@ def create_circular_pdf(df, column, fontsize=15, max_line_length=8,
             text_y = text_y_start - j * current_font_size
             c.drawString(text_x, text_y, line)
 
+        # Generate and draw QR code
+        qr_code_data = sku
+        qr_code_path = generate_qr_code(qr_code_data)
+
+        qr_code_x = x_center - 22  # Center QR code in the circle
+        qr_code_y = y_center - 24  # Center QR code in the circle
+        c.drawImage(qr_code_path, qr_code_x, qr_code_y, width=45, height=45)
+
+        # Calculate text position for the SKU name on top of the QR code
+        name_text_y = qr_code_y + 40  # Position the text above the QR code
+        name_text_x = qr_code_x + 22.5  # Center the name text over the QR code
+
+        # Draw the SKU name on top of the QR code
+        c.setFillColor(black)  # Set color to black for visibility
+        c.drawString(name_text_x - (c.stringWidth(sku, "Helvetica", current_font_size) / 2), name_text_y, sku)
+
+        # Clean up temporary QR code image
+        os.remove(qr_code_path)
+
     c.save()
 
 
-### FOR TOPAZ BELOW
-create_circular_pdf(
-    faceted_df,
-    "Name",
-    fontsize=12,
-    max_line_length=9,
-    filename="With Borders/circular_labels_syn_faceted.pdf",
-    border_enabled=1
-)
-#
-# create_circular_pdf(
-#     topaz_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=9,
-#     filename="Without Borders/Circle_Topaz.pdf",
-#     border_enabled=0
-# )
-
-
-### FOR GENUINE BELOW
-######## For Gem SKU ##############
-
-# create_circular_pdf(
-#     cab_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=7,
-#     filename="With Borders/Circle_Cab_Add_on.pdf",
-#     border_enabled=1
-# )
-
-### split long and short df for faceted SKUs
-# Create a new column to store the extracted text
-faceted_df['extracted'] = faceted_df['Name'].apply(extract_length)
-print(faceted_df)
-
-# Create two DataFrames based on the length of the extracted text
-short_df = faceted_df[faceted_df['extracted'].str.len() < 7]
-long_df = faceted_df[faceted_df['extracted'].str.len() >= 7]
-
-# Drop the temporary extracted column if not needed
-short_df = short_df.drop(columns=['extracted'])
-long_df = long_df.drop(columns=['extracted'])
-print(short_df)
-print(long_df)
-#
+# ### FOR SYNTHETIC
 # ########### WITH BORDER ##############
-create_circular_pdf(
-    short_df,
+create_circular_qrcode(
+    df,
     "Name",
-    fontsize=12,
-    max_line_length=8,
-    filename="With Borders/circular_labels_syn_short.pdf",
-    border_enabled=1
-)
-#
-# create_circular_pdf(
-#     short_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=7,
-#     filename="With Borders/Circle_Topaz_Short.pdf",
-#     border_enabled=1
-# )
-#
-create_circular_pdf(
-    long_df,
-    "Name",
-    fontsize=12,
-    max_line_length=8,
-    filename="With Borders/circular_labels_syn_long.pdf",
-    border_enabled=1
-)
-#
-create_circular_pdf(
-    cab_df,
-    "Name",
-    fontsize=12,
-    max_line_length=8,
-    filename="With Borders/circular_labels_syn_cab.pdf",
-    border_enabled=1
-)
-
-create_circular_pdf(
-    orb_df,
-    "Name",
-    fontsize=12,
-    max_line_length=8,
-    filename="With Borders/circular_labels_syn_orb.pdf",
+    max_line_length=7,
+    filename="qr_codes_borders/Circle_Print_All_lv.pdf",
     border_enabled=1
 )
 #
 #
 # ########### WITHOUT BORDER ##############
-#
-
-
-create_circular_pdf(
-    cab_df,
+create_circular_qrcode(
+    df,
     "Name",
-    fontsize=12,
-    max_line_length=8,
-    filename="Without Borders/circular_labels_syn_cab.pdf",
+    max_line_length=7,
+    filename="qr_codes_no_borders/Circle_Print_All_lv.pdf",
     border_enabled=0
 )
-
-create_circular_pdf(
-    orb_df,
-    "Name",
-    fontsize=12,
-    max_line_length=8,
-    filename="Without Borders/circular_labels_syn_orb.pdf",
-    border_enabled=0
-)
-
-create_circular_pdf(
-    short_df,
-    "Name",
-    fontsize=12,
-    max_line_length=8,
-    filename="Without Borders/circular_labels_syn_short.pdf",
-    border_enabled=0
-)
-
-create_circular_pdf(
-    long_df,
-    "Name",
-    fontsize=12,
-    max_line_length=8,
-    filename="Without Borders/circular_labels_syn_long.pdf",
-    border_enabled=0
-)
-#
-# create_circular_pdf(
-#     orb_df,
-#     "Name",
-#     fontsize=12,
-#     max_line_length=8,
-#     filename="Without Borders/Circle_Orb.pdf",
-#     border_enabled=0
-# )
